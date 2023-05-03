@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset=utf-8 />
+  <title>Lab 8: Denver home location exercise</title>
+  <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
+  <!-- Is the is the latest version of Leaflet? -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" />
+  <link href="https://fonts.googleapis.com/css?family=Lato:300,400,700" rel="stylesheet">
+
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: rgb(43, 43, 43);
+      font-family: "Lato", sans-serif;
+      font-size: 100%;
+      font-weight: 300;
+      color: rgb(172, 172, 172);
+    }
+
+    header,
+    footer,
+    section {
+      padding: 6px 10%;
+      margin: 0 auto;
+      width: 80%
+    }
+
+    h1 {
+      display: inline-block;
+      margin-right: 20px;
+      color: rgb(190, 190, 190);
+      font-size: 3.5em;
+      font-weight: 700;
+    }
+
+    h2 {
+      display: inline-block;
+      color: rgba(255, 200, 0, 0.8);
+      letter-spacing: 0.05em;
+      margin-top: 0px;
+      font-weight: 300;
+      text-transform: uppercase;
+      border-bottom: 1px dotted rgba(255, 200, 0, 0.5);
+      ;
+    }
+
+    #map {
+      width: 80%;
+      height: 540px;
+      margin: 10px auto;
+    }
+
+    p {
+      font-size: 1em;
+      color: rgba(170, 170, 170);
+      ;
+      font-weight: 300;
+      font-size: 1.2em;
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <h1>Moving to Denver?</h1>
+    <h2>A guide to some important features!</h2>
+  </header>
+
+  <div id='map'></div>
+
+  <footer>
+    <p>Map authored by Christopher Bullock</p>
+    <p>When clicked within the bounds of the map all details outside 1 km of the click will fade, while features within
+      1 km will highlight. This is done to achieve the goal of a client in finding a place within the city of Denver
+      that has 3 of their major criteria in this range.</p>
+  </footer>
+  <!-- Is the is the latest version of Leaflet? -->
+  <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
+  <script src="data/denver-fire-stations.js"></script>
+  <script src="data/after-school-programs.js"></script>
+  <script src="data/denver-food-stores.js"></script>
+  <script>
+    var map = L.map('map', {
+      center: [39.7256, -104.9252],
+      zoom: 11,
+    });
+
+    var tiles = L.tileLayer('https://cartodb-basemaps-{s}.global.ssl.fastly.net/rastertiles/dark_all/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="http://cartodb.com/attributions">CartoDB</a>',
+      subdomains: 'abcd',
+      maxZoom: 19
+    }).addTo(map);
+
+    // BEGIN WRITING YOUR SOLUTION CODE HERE
+
+    var commonStyles = {
+      weight: 1,
+      stroke: 0,
+      fillOpacity: 1,
+      radius: 10  // prefer 5
+    }
+
+    var fireLayer = L.geoJson(stations, {
+      pointToLayer: function (feature, latlng) {
+        return L.circleMarker(latlng, commonStyles);
+      },
+      filter: function (feature) {
+        if (feature.properties) {
+          return feature;
+        }
+      },
+      style: function (feature) {
+        return {
+          color: 'red',
+          fillColor: 'red'
+        }
+      },
+      onEachFeature: function (feature, layer) {
+        layer.on('mouseover', function () {
+          layer.setStyle({
+            fillColor: 'yellow'
+          });
+        });
+        layer.on('mouseout', function () {
+          layer.setStyle({
+            fillColor: 'red'
+          });
+        });
+        layer.on('mouseover', function () {
+          var popupContent = `<strong> ${feature.properties.FULL_ADDRE} </strong><br></br>` +
+            "Fire Station " + `${feature.properties.STATION_NU}`
+          layer.bindPopup(popupContent).openPopup();
+        });
+        layer.on('mouseout', function () {
+          this.closePopup();
+        })
+      }
+    }).addTo(map);
+
+    var schoolLayer = L.geoJson(programs, {
+      pointToLayer: function (feature, latlng) {
+        return L.circleMarker(latlng, commonStyles);
+      },
+      filter: function (feature) {
+        if (feature.properties) {
+          return feature;
+        }
+      },
+      style: function (feature) {
+        return {
+          color: 'blue',
+          fillColor: 'blue'
+        }
+      },
+      onEachFeature: function (feature, layer) {
+        layer.on('mouseover', function () {
+          layer.setStyle({
+            fillColor: 'yellow'
+          });
+        });
+        layer.on('mouseout', function () {
+          layer.setStyle({
+            fillColor: 'blue'
+          });
+        });
+        layer.on('mouseover', function () {
+          var popupContent = `<strong> ${feature.properties.LOC_NAME} </strong>`
+          layer.bindPopup(popupContent).openPopup();
+        });
+        layer.on('mouseout', function () {
+          this.closePopup();
+        })
+      }
+    }).addTo(map);
+
+    var foodLayer = L.geoJson(stores, {
+      pointToLayer: function (feature, latlng) {
+        return L.circleMarker(latlng, commonStyles);
+      },
+      filter: function (feature) {
+        if (feature.properties) {
+          return feature;
+        }
+      },
+      style: function (feature) {
+        return {
+          color: 'lightgreen',
+          fillColor: 'lightgreen'
+        }
+      },
+      onEachFeature: function (feature, layer) {
+        layer.on('mouseover', function () {
+          layer.setStyle({
+            fillColor: 'yellow'
+          });
+        });
+        layer.on('mouseout', function () {
+          layer.setStyle({
+            fillColor: 'lightgreen'
+          });
+        });
+        layer.on('mouseover', function () {
+          var popupContent = `<strong> ${feature.properties.STORE_NAME} </strong>`
+          layer.bindPopup(popupContent).openPopup();
+        });
+        layer.on('mouseout', function () {
+          this.closePopup();
+        })
+
+      }
+    }).addTo(map);
+
+
+
+    var layerInfo = {
+      fireLayer: {
+        source: "Fire",
+        color: 'red'
+      },
+      schoolLayer: {
+        source: "School",
+        color: 'blue',
+        fillColor: 'blue'
+      },
+      foodLayer: {
+        source: "Food",
+        fillColor: 'a6cee3'
+
+      }
+    };
+
+    var geoJsonLayers = {};
+
+    var sourcesLayers = {
+      "<b style='color:red'>Fire Stations</b>": fireLayer,
+      "<b style='color:blue'>School Programs</b>": schoolLayer,
+      "<b style='color:lightgreen; text-shadow: 0px 0px 1px #333;'>Food</b>": foodLayer
+    }
+    L.control.layers(null, sourcesLayers, {
+      collapsed: false
+    }).addTo(map);
+
+
+    map.on('click', function (e) {
+      fireLayer.eachLayer(function (layer) {
+        var distance = e.latlng.distanceTo(layer.getLatLng()) / 1000; // distance as km
+
+        if (distance > 1) {
+          layer.setStyle({
+            stroke: false,
+            fillOpacity: .1
+          });
+        } else {
+          layer.setStyle({
+            stroke: true,
+            fillOpacity: 1
+          });
+        }
+        console.log(distance)
+      });
+    });
+
+    map.on('click', function (e) {
+      schoolLayer.eachLayer(function (layer) {
+        var distance = e.latlng.distanceTo(layer.getLatLng()) / 1000; // distance as km
+
+        if (distance > 1) {
+          layer.setStyle({
+            stroke: false,
+            fillOpacity: .1
+          });
+        } else {
+          layer.setStyle({
+            stroke: true,
+            fillOpacity: 1
+          });
+        }
+        console.log(distance)
+      });
+    });
+    map.on('click', function (e) {
+      foodLayer.eachLayer(function (layer) {
+        var distance = e.latlng.distanceTo(layer.getLatLng()) / 1000; // distance as km
+
+        if (distance > 1) {
+          layer.setStyle({
+            stroke: false,
+            fillOpacity: .1
+          });
+        } else {
+          layer.setStyle({
+            stroke: true,
+            fillOpacity: 1
+          });
+        }
+        console.log(distance)
+      });
+    });
+
+  </script>
+
+</body>
+
+</html>
