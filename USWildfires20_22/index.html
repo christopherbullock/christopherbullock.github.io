@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+  <title>title</title>
+  <!-- Bootstrap CSS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css"
+    integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous" />
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css"
+    integrity="sha256-kLaT2GOSpHechhsozzB+flnD+zUyjE2LlfWPgU04xyI=" crossorigin="" />
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,400;0,800;1,800&display=swap"
+    rel="stylesheet" />
+  <style>
+    body {
+      background: #20282e;
+      font-family: "Open Sans", sans-serif;
+      font-weight: 400;
+      font-size: 100%;
+    }
+
+    footer {
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+      height: 3rem;
+    }
+
+    h1 {
+      font-weight: 800;
+    }
+
+    p {
+      line-height: 1.7rem;
+    }
+
+    #map {
+      /* height is set in JS */
+      background: #2d2f31;
+    }
+
+    .legend {
+      font-size: 1rem;
+      border-radius: 5px;
+      max-width: 200px;
+      font-family: "Open Sans", sans-serif;
+      background: rgba(100, 100, 100, 0.9);
+      color: rgba(244, 244, 244, 0.8);
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .legend h3 {
+      font-size: 1.1em;
+      font-weight: normal;
+      color: #ddd;
+      margin: 0 0 10px 0;
+    }
+
+    .legend span {
+      width: 20px;
+      height: 20px;
+      margin: 0 10px 4px 0;
+    }
+
+    .legend label {
+      font-size: 0.9rem;
+    }
+
+    .leaflet-bar a {
+      /* Override the default style for Leaflet's zoom  */
+      background: rgba(100, 100, 100, 0.9);
+      color: rgba(244, 244, 244, 0.8);
+    }
+
+    a:hover {
+      color: rgb(130, 131, 132);
+      text-decoration: none;
+    }
+
+    /* Custom Tool tips */
+    .leaflet-tooltip-own {
+      background: rgba(58, 58, 58, 0.955);
+      color: rgb(244, 244, 244);
+      border: none;
+      font-size: 1rem;
+      border-radius: 5px;
+      padding: 10px;
+      font-family: "Open Sans", sans-serif;
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .leaflet-tooltip-left:before {
+      right: 0;
+      margin-right: -12px;
+      border-left-color: rgba(0, 0, 0, 0.4);
+    }
+
+    .leaflet-tooltip-right:before {
+      left: 0;
+      margin-left: -12px;
+      border-right-color: rgba(0, 0, 0, 0.4);
+    }
+
+    /* Small devices (landscape phones, 576px and up) */
+    @media (min-width: 576px) {}
+
+    /* Medium devices (tablets, 768px and up) */
+    @media (min-width: 768px) {}
+
+    /* Large devices (desktops, 992px and up) */
+    @media (min-width: 992px) {}
+
+    /* Extra large devices (large desktops, 1200px and up) */
+    @media (min-width: 1200px) {}
+  </style>
+</head>
+
+<body>
+  <div class="container-fluid">
+    <header class="row bg-dark text-white p-2">
+      <div class="col-8">
+        <h1>US Fires 2020-2022</h1>
+      </div>
+      <div class="col-4 align-self-center">
+        <p class="d-flex justify-content-end my-auto">
+          <a class="btn text-white bg-secondary" data-bs-toggle="offcanvas" href="#offcanvasExample" role="button"
+            aria-controls="offcanvasExample">
+            Map Info
+          </a>
+        </p>
+      </div>
+    </header>
+
+    <section class="row">
+      <div class="p-0">
+        <div id="map"></div>
+      </div>
+    </section>
+
+    <footer class="row bg-dark text-white p-2">
+      <p class="text-center"></p>
+    </footer>
+  </div>
+
+  <div class="offcanvas offcanvas-start bg-dark text-white" tabindex="-1" id="offcanvasExample"
+    aria-labelledby="offcanvasExampleLabel">
+    <div class="offcanvas-header">
+      <h5 class="offcanvas-title" id="offcanvasExampleLabel">Map Info</h5>
+      <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    </div>
+    <div class="offcanvas-body">
+      <h3 class="py-2">Wildfires Across the United States</h3>
+      <p>
+        Wildfires have become all too common in recent years with a multitude of reason ranging from climate change,
+        agriculure, and recreational forest use. This is all on top of the already real chance of lightning strikes and
+        other natural events that used to cause the landscape to burn on a regular basis! The goal of this map is to
+        show some of the landscapes most changed by recent fires and give a glimpse into the vastness that some of these
+        fires become for wildland firefighters.
+      </p>
+      <hr />
+      <ul class="list-unstyled">
+        <li>authored by <a href="#">Christopher Bullock</a></li>
+        <li>Date of authored map 5/10/2023</li>
+        <li>data source: <a href="#">data source</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- 
+  legend is outside of container-fluid and will be dynamically added to map
+  Bootstrap classes styles the legend
+-->
+  <div class="legend d-flex flex-column px-3 py-2" id="legend"></div>
+
+  <!-- 
+  ui is outside of container-fluid and will be dynamically added to map 
+  Bootstrap classes styles the UI
+-->
+
+  <div class="me-3 mt-3" id="dropdown-ui">
+    <select class="form-select bg-secondary text-white" id="year-select">
+      <option value="2020" selected>2020</option>
+      <option value="2021">2021</option>
+      <option value="2022">2022</option>
+    </select>
+  </div>
+  <!-- end ui-controls -->
+
+  <!-- end ui-controls -->
+
+
+  <!-- Add Bootstrap -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4" crossorigin="anonymous">
+  </script>
+  <!-- then Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"
+    integrity="sha256-WBkoXOwTeyKclOHuWtc+i2uENFpDZ9YPdf5Hf+D7ewM=" crossorigin=""></script>
+  <!-- then Simple Statistics -->
+  <script src="https://unpkg.com/simple-statistics@7.8.3/dist/simple-statistics.min.js"></script>
+  <script>
+    // Add footer date
+    setDate()
+
+    // Fit page to window
+    fitLayout();
+
+    window.addEventListener('resize', fitLayout);
+
+    function fitLayout() {
+      // set global variables for header, map container, and footer
+      const header = document.querySelector("header");
+      const mapContainer = document.querySelector("#map");
+      const footer = document.querySelector("footer");
+
+      // set map height to fill window
+      mapContainer.style.height =
+        window.innerHeight - header.offsetHeight - footer.offsetHeight + "px";
+    }
+
+    const options = {
+      center: [38, -97],
+      zoom: 4,
+      zoomSnap: 0.5,
+      zoomControl: false,
+      attributionControl: false,
+    };
+    // create Leaflet map and apply options
+    const map = L.map("map", options);
+    new L.control.zoom({
+      position: "bottomright"
+    }).addTo(map);
+
+    setPanes = ['bottom', 'middle', 'top']
+    setPanes.forEach((pane, i) => {
+      map.createPane(pane);
+      map.getPane(pane).style.zIndex = 401 + i;
+    })
+
+    // request a basemap tile layer and add to the map
+    L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png", {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    }).addTo(map);
+
+    L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}{r}.png", {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      pane: 'top'
+    }).addTo(map);
+
+    let attributeValue = "poly_GISAc"
+    
+    function getDropDownYear(){
+      let yearSelect = document.querySelector('#year-select');
+      let year = yearSelect.value;
+      return year
+    }
+
+    let year = getDropDownYear();
+
+    //if the year-select dropdown changes, update the year variable
+    document.querySelector('#year-select').addEventListener('change', function(){
+      year = getDropDownYear();
+      setMap();
+    })
+
+    function undrawMap(){
+      map.eachLayer(function(layer){
+        if(layer.options.pane !== 'tilePane'){
+          map.removeLayer(layer)
+        }
+      })
+    }
+
+  function setMap(){
+  undrawMap();
+  setData = [{
+      source: `data/NIFC_FIRE_DATA${year}.geojson`,
+      interactive: true,
+      options: {
+        pane: 'bottom',
+        styles: {
+          color: "red",
+          weight: 0.2,
+          fillOpacity: 1,
+        }
+      }
+    }, {
+      source: 'https://newmapsplus.github.io/assets/data/us_states_20m.geojson',
+      options: {
+        pane: 'middle',
+        styles: {
+          color: "black",
+          weight: 1,
+          fillOpacity: 0,
+          interactive: false,
+        }
+      }
+    }];
+
+    setData.forEach((layer) => {
+      fetch(layer.source)
+        .then((response) => {
+          return response.json();
+        })
+        .then((data) => {
+          if (layer.interactive) {
+            drawMap(data, layer.options)
+          } else {
+            drawLayer(data, layer.options)
+          }
+        });
+    })}
+    setMap();
+
+
+    // Example of keeping your page fresh, this is for the footer date.
+    function setDate() {
+      const date = new Date();
+      const year = date.getFullYear();
+      const month = date.toLocaleString('default', {
+        month: 'long'
+      });
+      const footerText = document.querySelector("footer p");
+      footerText.innerHTML = `${month}, ${year} | New Maps Plus`;
+    }
+    function drawMap(data, options) {
+      // create Leaflet data layer and add to map
+
+      const counties = L.geoJson(data, {
+        // style counties with initial default path options
+        style: function (feature) {
+          return options.styles
+        },
+        // add hover/touch functionality to each feature layer
+        onEachFeature: function (feature, layer) {
+          // when mousing over a layer
+          layer.on("mouseover", function () {
+            // change the stroke color and bring that element to the front
+            layer
+              .setStyle({
+                color: "blue",
+              })
+              .bringToFront();
+          });
+
+          // on mousing off layer
+          layer.on("mouseout", function () {
+            // reset the layer style to its original stroke color
+            layer.setStyle({
+              color: "red",
+            });
+          });
+        },
+        pane: options.pane
+      }).addTo(map);
+
+
+      updateMap(counties); // draw the map
+      addUi(counties); // add the UI controls
+      // console.log("map drawn!")
+      // data is now accessible here
+    }
+
+    function drawLayer(data, options) {
+      L.geoJson(data, {
+        style: function (feature) {
+          return options.styles
+        },
+        pane: options.pane
+      }).addTo(map);
+    }
+
+    function updateMap(counties) {
+
+      // get the class breaks for the current data attribute
+      const breaks = getClassBreaks(counties);
+
+      // loop through each county layer to update the color and tooltip info
+      counties.eachLayer(function (layer) {
+        const props = layer.feature.properties;
+
+        // set the fill color of layer based on its normalized data value
+        layer.setStyle({
+          fillColor: getColor(props[attributeValue], breaks),
+        });
+
+        // assemble string sequence of info for tooltip (end line break with + operator)
+        let tooltipInfo = `<b>Fire Name: ${props["poly_Incid"]}</b></br>
+        ${Number(props["poly_GISAc"]).toFixed(2)} Acres`;
+
+
+        // bind a tooltip to layer with county-specific information
+        layer.bindTooltip(tooltipInfo, {
+          // sticky property so tooltip follows the mouse
+          sticky: true,
+        });
+      });
+
+      addLegend(breaks);
+      updateLegend(breaks);
+    }
+
+    function getClassBreaks(counties) {
+      const values = [];
+      // loop through all the counties
+      counties.eachLayer(function (layer) {
+        let value =
+          layer.feature.properties[attributeValue];
+        values.push(value); 
+      });
+
+      // determine similar clusters
+      const clusters = ss.ckmeans(values, 5);
+
+      // create an array of the lowest value within each cluster
+      const breaks = clusters.map(function (cluster) {
+        return [cluster[0], cluster.pop()];
+      });
+      //return array of arrays, e.g., [[0.24,0.25], [0.26, 0.37], etc]
+      return breaks;
+    }
+    // Get colors here: https://vis4.net/labs/multihue
+    const colors = ['blue', '#e6c54e', '#ffff00', 'orange', 'red']
+
+
+    // Get color of county
+    function getColor(d, breaks) {
+
+      for (let n = 0; n < breaks.length; n++) {
+        if (Number(d) <= breaks[n][1]) {
+          return colors[n];
+        }
+      }
+    }
+
+    function addLegend(breaks) {
+      // check your console to verify the breaks array
+      // create a new Leaflet control object, and position it top left
+      const legendControl = L.control({
+        position: "topleft"
+      });
+
+      // when the legend is added to the map
+      legendControl.onAdd = function () {
+        // select a div element with an id attribute of legend
+        const legend = L.DomUtil.get("legend");
+
+        // disable scroll and click/touch on map when on legend
+        L.DomEvent.disableScrollPropagation(legend);
+        L.DomEvent.disableClickPropagation(legend);
+
+        // return the selection to the method
+        return legend;
+      };
+
+      // add the empty legend div to the map
+      legendControl.addTo(map);
+
+
+    }
+
+    function updateLegend(breaks) {
+      // select the legend, add a title, begin an unordered list and assign to a variable
+      const legend = document.querySelector("#legend")
+      let textValue = ""
+      switch (year) {
+        case "2020":
+          textValue = "Fires in 2020"
+          break;
+        case "2021":
+          textValue = "Fires in 2021"
+          break;
+        case "2022":
+          textValue = "Fires in 2022"
+          break;
+        default:
+          textValue = "Fires in 2020"
+      };
+
+      legend.innerHTML = `<h5>${textValue}</h5>`;
+
+      // loop through the Array of classification break values
+      for (let i = 0; i <= breaks.length - 1; i++) {
+        let color = getColor(breaks[i][0], breaks);
+
+        legend.innerHTML +=
+          `<div class="d-flex flex-row justify-content-start">
+      <span style="background:${color}"></span>
+      <label>${(breaks[i][0] * 1).toFixed(0)} &mdash; 
+      ${(breaks[i][1] * 1).toFixed(0)} acres</label>
+  </div>`
+      }
+    }
+
+    function addUi(counties) {
+      // create the slider control
+      var selectControl = L.control({
+        position: "topright"
+      });
+
+      // when control is added
+      selectControl.onAdd = function () {
+        // get the element with id attribute of ui-controls
+        return L.DomUtil.get("dropdown-ui");
+      };
+      // add the control to the map
+      selectControl.addTo(map);
+    }
+
+  </script>
+</body>
+
+</html>
