@@ -251,8 +251,8 @@
     }).addTo(map);
 
     let attributeValue = "poly_GISAc"
-    
-    function getDropDownYear(){
+
+    function getDropDownYear() {
       let yearSelect = document.querySelector('#year-select');
       let year = yearSelect.value;
       return year
@@ -261,58 +261,59 @@
     let year = getDropDownYear();
 
     //if the year-select dropdown changes, update the year variable
-    document.querySelector('#year-select').addEventListener('change', function(){
+    document.querySelector('#year-select').addEventListener('change', function () {
       year = getDropDownYear();
       setMap();
     })
 
-    function undrawMap(){
-      map.eachLayer(function(layer){
-        if(layer.options.pane !== 'tilePane'){
+    function undrawMap() {
+      map.eachLayer(function (layer) {
+        if (layer.options.pane !== 'tilePane') {
           map.removeLayer(layer)
         }
       })
     }
 
-  function setMap(){
-  undrawMap();
-  setData = [{
-      source: `data/NIFC_FIRE_DATA${year}.geojson`,
-      interactive: true,
-      options: {
-        pane: 'bottom',
-        styles: {
-          color: "red",
-          weight: 0.2,
-          fillOpacity: 1,
-        }
-      }
-    }, {
-      source: 'https://newmapsplus.github.io/assets/data/us_states_20m.geojson',
-      options: {
-        pane: 'middle',
-        styles: {
-          color: "black",
-          weight: 1,
-          fillOpacity: 0,
-          interactive: false,
-        }
-      }
-    }];
-
-    setData.forEach((layer) => {
-      fetch(layer.source)
-        .then((response) => {
-          return response.json();
-        })
-        .then((data) => {
-          if (layer.interactive) {
-            drawMap(data, layer.options)
-          } else {
-            drawLayer(data, layer.options)
+    function setMap() {
+      undrawMap();
+      setData = [{
+        source: `data/NIFC_FIRE_DATA${year}.geojson`,
+        interactive: true,
+        options: {
+          pane: 'bottom',
+          styles: {
+            color: "red",
+            weight: 0.2,
+            fillOpacity: 1,
           }
-        });
-    })}
+        }
+      }, {
+        source: 'https://newmapsplus.github.io/assets/data/us_states_20m.geojson',
+        options: {
+          pane: 'middle',
+          styles: {
+            color: "black",
+            weight: 1,
+            fillOpacity: 0,
+            interactive: false,
+          }
+        }
+      }];
+
+      setData.forEach((layer) => {
+        fetch(layer.source)
+          .then((response) => {
+            return response.json();
+          })
+          .then((data) => {
+            if (layer.interactive) {
+              drawMap(data, layer.options)
+            } else {
+              drawLayer(data, layer.options)
+            }
+          });
+      })
+    }
     setMap();
 
 
@@ -326,6 +327,7 @@
       const footerText = document.querySelector("footer p");
       footerText.innerHTML = `${month}, ${year} | New Maps Plus`;
     }
+
     function drawMap(data, options) {
       // create Leaflet data layer and add to map
 
@@ -409,7 +411,7 @@
       counties.eachLayer(function (layer) {
         let value =
           layer.feature.properties[attributeValue];
-        values.push(value); 
+        values.push(value);
       });
 
       // determine similar clusters
@@ -509,7 +511,6 @@
       // add the control to the map
       selectControl.addTo(map);
     }
-
   </script>
 </body>
 
